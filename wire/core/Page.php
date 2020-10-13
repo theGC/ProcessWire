@@ -1539,7 +1539,7 @@ class Page extends WireData implements \Countable, WireMatchable {
 		// prevent storage of value if it was filtered when loaded
 		if(!empty($selector)) $this->__unset($key);
 		
-		if(is_object($value) && $value instanceof Wire) $value->resetTrackChanges(true);
+		if(is_object($value) && $value instanceof Wire && !$value instanceof Page) $value->resetTrackChanges(true);
 		if($track) $this->setTrackChanges(true); 
 	
 		$value = $this->formatFieldValue($field, $value);
@@ -3077,9 +3077,11 @@ class Page extends WireData implements \Countable, WireMatchable {
 	 *
 	 */
 	public function resetTrackChanges($trackChanges = true) {
-		parent::resetTrackChanges($trackChanges); 
+		parent::resetTrackChanges($trackChanges);
 		foreach($this->data as $key => $value) {
-			if(is_object($value) && $value instanceof Wire && $value !== $this) $value->resetTrackChanges($trackChanges); 
+			if(is_object($value) && $value instanceof Wire && !$value instanceof Page) {
+				$value->resetTrackChanges($trackChanges);
+			}
 		}
 		return $this; 
 	}
@@ -4106,6 +4108,26 @@ class Page extends WireData implements \Countable, WireMatchable {
 	}
 
 	/**
+	 * Does this Page use secure Pagefiles?
+	 * 
+	 * See also `$template->pagefileSecure` and `$config->pagefileSecure` which determine the return value. 
+	 *
+	 * #pw-group-files
+	 *
+	 * @return bool|null Returns boolean true if yes, false if no, or null if not known
+	 * @since 3.0.166
+	 *
+	 */
+	public function secureFiles() {
+		if($this->wire()->config->pagefileSecure && !$this->isPublic()) return true;
+		if(!$this->template) return null;
+		$value = $this->template->pagefileSecure;
+		if($value < 1) return false; // 0: disabled
+		if($value > 1) return true; // 2: files always secure
+		return !$this->isPublic(); // 1: secure only if page not public
+	}
+
+	/**
 	 * Does the page have a files path for storing files?
 	 * 
 	 * This will only check if files path exists, it will not create the path if it’s not already present.
@@ -4135,6 +4157,31 @@ class Page extends WireData implements \Countable, WireMatchable {
 	 */
 	public function hasFiles() {
 		return PagefilesManager::hasFiles($this); 
+	}
+
+	/**
+	 * Does Page have given filename in its files directory?
+	 *
+	 * @param string $file File basename or verbose hash
+	 * @param array $options
+	 *  - `getPathname` (bool): Get full path + filename when would otherwise return boolean true? (default=false)
+	 *  - `getPagefile` (bool): Get Pagefile object when would otherwise return boolean true? (default=false)
+	 * @return bool|string
+	 * @since 3.0.166
+	 *
+	 */
+	public function hasFile($file, array $options = array()) {
+		$defaults = array(
+			'getPathname' => false,
+			'getPagefile' => false,
+		);
+		$file = basename($file);
+		$options = array_merge($defaults, $options);
+		$hasFile = PagefilesManager::hasFile($this, $file, $options['getPathname']);
+		if($hasFile && $options['getPagefile']) {
+			$hasFile = $this->wire()->fieldtypes->FieldtypeFile->getPagefile($this, $file);
+		}
+		return $hasFile;
 	}
 
 	/**
@@ -4178,7 +4225,6 @@ class Page extends WireData implements \Countable, WireMatchable {
 			foreach($this->template->fieldgroup as $field) {
 				$value = parent::get($field->name);
 				if($value != null && is_object($value)) {
-					if(method_exists($value, 'uncache') && $value !== $this) $value->uncache(); 
 					parent::set($field->name, null); 
 					if(isset($this->wakeupNameQueue[$field->name])) unset($this->wakeupNameQueue[$field->name]); 
 				}

@@ -202,7 +202,7 @@ var Inputfields = {
 		}
 
 		function opened() {
-			$inputfield.trigger('opened');
+			$inputfield.trigger('opened', $inputfield);
 			if($inputfield.hasClass('InputfieldColumnWidth')) {
 				$inputfield.children('.InputfieldContent').show();
 			}
@@ -214,7 +214,7 @@ var Inputfields = {
 
 		function closed() {
 			if($inputfield.css('overflow') == 'hidden') $inputfield.css('overflow', '');
-			$inputfield.trigger('closed');
+			$inputfield.trigger('closed', $inputfield);
 			if($inputfield.hasClass('InputfieldColumnWidth')) {
 				$inputfield.children('.InputfieldContent').hide();
 			}
@@ -261,7 +261,7 @@ var Inputfields = {
 
 		// handle either open or close
 		if(open && isCollapsed) {
-			$inputfield.addClass('InputfieldStateToggling').trigger('openReady');
+			$inputfield.addClass('InputfieldStateToggling').trigger('openReady', $inputfield);
 			if(duration && jQuery.ui) {
 				$inputfield.toggleClass('InputfieldStateCollapsed', duration, opened);
 			} else {
@@ -269,7 +269,7 @@ var Inputfields = {
 				opened();
 			}
 		} else if(!open && !isCollapsed) {
-			$inputfield.addClass('InputfieldStateToggling').trigger('closeReady');
+			$inputfield.addClass('InputfieldStateToggling').trigger('closeReady', $inputfield);
 			if(duration && jQuery.ui) {
 				$inputfield.toggleClass('InputfieldStateCollapsed', duration, closed);
 			} else {
@@ -1375,17 +1375,24 @@ function InputfieldDependencies($target) {
 
 				// locate the dependency inputfield
 				var $inputfield = $("#Inputfield_" + f);
-				if ($inputfield.length == 0) {
+				if($inputfield.length == 0) {
 					consoleLog("Unable to find inputfield by: #Inputfield_" + f); 
 					$inputfield = $("#" + f);
 					if($inputfield.length == 0) consoleLog("Unable to find inputfield by: #" + f); 
 				}
 
 				// if the dependency inputfield isn't found, locate its wrapper..
-				if ($inputfield.length == 0) {
+				if($inputfield.length == 0) {
 					// use any inputs within the wrapper
 					$inputfield = $("#wrap_Inputfield_" + f).find(":input");
 					if($inputfield.length == 0) consoleLog("Unable to find inputfield by: #wrap_Inputfield_" + f + " :input");
+				}
+				
+				// if the dependency inputfield isn't found, locate its wrapper..
+				if($inputfield.length == 0) {
+					// use any inputs within the wrapper
+					$inputfield = $("#wrap_" + f).find(":input");
+					if($inputfield.length == 0) consoleLog("Unable to find inputfield by: #wrap_" + f + " :input");
 				}
 
 				// attach change event to dependency inputfield

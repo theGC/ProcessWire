@@ -708,7 +708,7 @@ abstract class Fieldtype extends WireData implements Module {
 	 * @param string $subfield Name of the subfield (typically 'data', unless selector explicitly specified another)
 	 * @param string $operator The comparison operator
 	 * @param mixed $value The value to find
-	 * @return DatabaseQuery $query
+	 * @return PageFinderDatabaseQuerySelect|DatabaseQuerySelect $query
 	 * @throws WireException
 	 *
 	 */
@@ -724,6 +724,28 @@ abstract class Fieldtype extends WireData implements Module {
 		$operator = $database->escapeOperator($operator, WireDatabasePDO::operatorTypeComparison); 
 		$query->where("{$table}.{$subfield}{$operator}?", $value); // QA
 		return $query; 
+	}
+
+	/**
+	 * Get or update query to sort by given $field or $subfield
+	 * 
+	 * Return false if this Fieldtype does not have built-in sort logic and PageFinder should handle it. 
+	 * Return string of query to add to ORDER BY statement, or boolean true if method added it already. 
+	 * 
+	 * #pw-internal
+	 *
+	 * @param Field $field
+	 * @param DatabaseQuerySelect $query
+	 * @param string $table
+	 * @param string $subfield
+	 * @param bool $desc True for descending, false for ascending
+	 * @return bool|string
+	 * @since 3.0.167
+	 * 
+	 */
+	public function getMatchQuerySort(Field $field, $query, $table, $subfield, $desc) {
+		if($query && $table && $field && $subfield && $desc) {}
+		return false;
 	}
 
 	/**
