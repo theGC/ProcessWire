@@ -745,10 +745,17 @@ class InputfieldSelector extends Inputfield implements ConfigurableModule {
 			$selector = $this->sanitizeSelectorString($selector); 
 			$cnt = $this->wire('pages')->count($selector, array('allowCustom' => true));
 			$out = '';
-			// take into account a limit=n 
+			// take into account a limit=n
 			if(strpos($selector, 'limit=') !== false && preg_match('/\blimit=(\d+)/', $selector, $matches)) {
-				$out = ' ' . sprintf($this->_('(%d without limit)'), $cnt); 
-				if($cnt > $matches[1]) $cnt = $matches[1]; 
+				$out = ' ' . sprintf($this->_('(%d without limit)'), $cnt);
+				// take into account a start=n
+				if(strpos($selector, 'start=') !== false && preg_match('/\bstart=(\d+)/', $selector, $startMatches)) {
+					$cnt -= $startMatches[1];
+					if($cnt > $matches[1]) $cnt = $matches[1];
+					if($cnt < 0) $cnt = 0;
+				} else if($cnt > $matches[1]) {
+					$cnt = $matches[1];
+				}
 			}
 			$out = sprintf($this->_n('matches %d page', 'matches %d pages', $cnt), $cnt) . $out;
 			if(self::debug) $out .= " (" . $selector . ")";
