@@ -585,6 +585,11 @@ class InputfieldSelector extends Inputfield implements ConfigurableModule {
 				'label' => $this->_('Limit'),
 				'operators' => array('=')
 			),
+			'start' => array(
+				'input' => 'integer',
+				'label' => $this->_('Start (requires limit)'),
+				'operators' => array('=')
+			),
 			'sort' => array(
 				'input' => 'select',
 				'label' => $this->_('Sort'),
