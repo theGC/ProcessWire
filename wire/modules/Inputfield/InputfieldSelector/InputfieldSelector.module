@@ -751,11 +751,9 @@ class InputfieldSelector extends Inputfield implements ConfigurableModule {
 				// take into account a start=n
 				if(strpos($selector, 'start=') !== false && preg_match('/\bstart=(\d+)/', $selector, $startMatches)) {
 					$cnt -= $startMatches[1];
-					if($cnt > $matches[1]) $cnt = $matches[1];
 					if($cnt < 0) $cnt = 0;
-				} else if($cnt > $matches[1]) {
-					$cnt = $matches[1];
 				}
+				if($cnt > $matches[1]) $cnt = $matches[1];
 			}
 			$out = sprintf($this->_n('matches %d page', 'matches %d pages', $cnt), $cnt) . $out;
 			if(self::debug) $out .= " (" . $selector . ")";
